@@ -76,7 +76,6 @@ class SimpleGeo extends CURL {
 
 	private $consumer;
 	private $token, $secret;
-	private $format;
 	
 	const BASE_URL = 'http://api.simplegeo.com/';
 	
@@ -90,7 +89,6 @@ class SimpleGeo extends CURL {
 	
 	
 	public function SimpleGeo($token = false, $secret = false) {
-		$this->format = 'json';
 		$this->token = $token;
 		$this->secret = $secret;
 		$this->consumer = new OAuthConsumer($this->token, $this->secret);
@@ -397,7 +395,7 @@ class SimpleGeo extends CURL {
 	
 	
 	private function SendRequest($method = 'GET', $endpoint, $data = array()) {
-		$this->Revert(self::BASE_URL . $endpoint . '.' . $this->format);
+		$this->Revert(self::BASE_URL . $endpoint);
 		$this->SetMethod($method);
 		if (is_array($data)) $this->AddVars($data);
 		else if (is_string($data)) $this->SetBody($data);
