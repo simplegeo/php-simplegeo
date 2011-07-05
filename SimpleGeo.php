@@ -179,7 +179,7 @@ class SimpleGeo extends CURL {
 	**/
 	
 	public function PlacesIP($ip, $opts = false) {
-		return $this->SendRequest('GET', '1.0/places/' . $ip, $opts . '.json');
+		return $this->SendRequest('GET', '1.0/places/' . $ip . '.json', $opts);
 	}
 	
 	
