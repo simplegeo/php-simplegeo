@@ -79,15 +79,6 @@ class SimpleGeo extends CURL {
 	
 	const BASE_URL = 'http://api.simplegeo.com/';
 	
-	const MONDAY = 'mon';
-	const TUESDAY = 'tue';
-	const WEDNESDAY = 'wed';
-	const THURSDAY = 'thu';
-	const FRIDAY = 'fri';
-	const SATURDAY = 'sat';
-	const SUNDAY = 'sun';
-	
-	
 	public function SimpleGeo($token = false, $secret = false) {
 		$this->token = $token;
 		$this->secret = $secret;
@@ -266,25 +257,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Returns density information of a coordinate
-		
-		@var	string	$dayname	A day name (mon, tue, wed, thu, fri, sat, sun)
-		@var	double	$lat		Latitude
-		@var	double	$lon		Longitude
-		
-		@param	int		$hour		Hour of the day
-		
-	**/
-	public function SpotRankDensity($dayname, $lat, $lon, $hour = false) {
-		$params = array();
-		if ($hour !== false) $params['hour'] = $hour;
-		return $this->SendRequest('GET', '1.0/density/' . $dayname . '/' . $hour . '/' . $lat . ',' . $lon . '.json', $params);
-	}
-	
-	
-	
-	/**
-		Inserts a record according to the ID and Layer properties of the record
+		Inserts a record according to the ID and Layer properties of the SimpleGeo Storage record
 		
 		@var	Record	$record	The record to insert
 		
@@ -296,7 +269,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Gets a record according to the ID and Layer properties of the record
+		Gets a record according to the ID and Layer properties of the SimpleGeo Storage record
 		
 		@var	Record	$record	The record to retrieve
 		
@@ -307,7 +280,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Delete a record according to the ID and Layer properties of the record
+		Delete a record according to the ID and Layer properties of the SimpleGeo Storage record
 		
 		@var	Record	$record	The record to delete
 		
@@ -319,7 +292,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Retrieve the history of an individual record
+		Retrieve the history of an individual Simplegeo Storage record
 		
 		@var	Record	$record	The record to retrieve the history of
 	**/
@@ -330,7 +303,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Retrieve records nearby the coordinate given
+		Retrieve SimpleGeo Storage records nearby the coordinate given
 		
 		@var	string	$layer	The name of the layer to retrieve records from
 		@var	double	$lat	Latitude
@@ -346,7 +319,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Retrieve records nearby a geohash
+		Retrieve SimpleGeo Storage records nearby a geohash
 		
 		@var	string	$layer	The name of the layer to retrieve records from
 		@var	string	$hash	The geohash (see geohash.org) of the location
@@ -361,7 +334,7 @@ class SimpleGeo extends CURL {
 	
 	
 	/**
-		Retrieve records near an IP address
+		Retrieve SimpleGeo Storage records near an IP address
 		
 		@var	string	$layer	The name of the layer to retrieve records from
 		@var	string	$ip		The IP address to search around
