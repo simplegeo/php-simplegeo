@@ -255,7 +255,7 @@ class SimpleGeo extends CURL {
 		return $this->SendRequest('DELETE', '1.0/features/' . $place->ID . '.json');
 	}
 	
-	
+
 	/**
 		Inserts a record according to the ID and Layer properties of the SimpleGeo Storage record
 		
@@ -316,6 +316,20 @@ class SimpleGeo extends CURL {
 		return $this->SendRequest('GET', '0.1/records/' . $layer . '/nearby/' . $lat . ',' . $lng . '.json', $params);
 	}
 	
+	
+	/**
+		Returns nearby SimpleGeo Storage records near a street address
+		
+		@var string $address	Human readable address (US only)
+		
+		@params	array	$params	Additional parameters in an associate array (radius, limit, types, start, end)
+
+	**/
+	public function NearbyRecordsAddress($layer, $address, $params = array()) {
+		return $this->SendRequest('GET', '0.1/records/' . $layer . '/nearby/address.json', array_merge(array(
+			'address' => $address
+		), $params));
+	}
 	
 	
 	/**
