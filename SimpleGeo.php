@@ -55,7 +55,7 @@ class Record {
 			'created' => $this->Created,
 			'geometry' => array(
 				'type' => 'Point',
-				'coordinates' => array($this->Latitude, $this->Longitude),
+				'coordinates' => array($this->Longitude, $this->Latitude),
 			),
 			'properties' => (object) $this->Properties
 		);
