@@ -1,4 +1,4 @@
-<?
+<?php
 
 include 'OAuth.php';
 include 'CURL.php';
@@ -156,6 +156,12 @@ class SimpleGeo extends CURL {
 		return $this->SendRequest('GET', '1.0/context/address.json', array('address' => $address));
 	}
 	
+	public function WeatherAddress($address) {
+		return $this->SendRequest('GET', '1.0/context/address.json', 
+			array('address' => $address, 'filter' => "weather")
+		);
+
+	}
 	
 	
 	/**
