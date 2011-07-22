@@ -18,7 +18,7 @@ class GeoPoint {
 	http://simplegeo.com/docs/getting-started/storage#what-record
 	
 **/
-class Record {
+class GeoRecord {
 	
 	private $Properties;
 	public $Layer;
@@ -36,7 +36,7 @@ class Record {
 		@param	double	$lat	Latitude
 		@param	double	$lng	Longitude
 	**/
-	public function Record($layer, $id, $lat = NULL, $lng = NULL) {
+	public function GeoRecord($layer, $id, $lat = NULL, $lng = NULL) {
 		$this->Layer = $layer;
 		$this->ID = $id;
 		$this->Latitude = $lat;
@@ -268,7 +268,7 @@ class SimpleGeo extends CURL {
 		@var	Record	$record	The record to insert
 		
 	**/
-	public function PutRecord(Record $record) {
+	public function PutRecord(GeoRecord $record) {
 		return $this->SendRequest('PUT', '0.1/records/' . $record->Layer . '/' . $record->ID . '.json', json_encode($record->ToArray()));
 	}
 	
@@ -280,7 +280,7 @@ class SimpleGeo extends CURL {
 		@var	Record	$record	The record to retrieve
 		
 	**/
-	public function GetRecord(Record $record) {
+	public function GetRecord(GeoRecord $record) {
 		return $this->SendRequest('GET', '0.1/records/' . $record->Layer . '/' . $record->ID . '.json');
 	}
 	
@@ -291,7 +291,7 @@ class SimpleGeo extends CURL {
 		@var	Record	$record	The record to delete
 		
 	**/
-	public function DeleteRecord(Record $record) {
+	public function DeleteRecord(GeoRecord $record) {
 		return $this->SendRequest('DELETE', '0.1/records/' . $record->Layer . '/' . $record->ID . '.json');
 	}
 	
@@ -302,7 +302,7 @@ class SimpleGeo extends CURL {
 		
 		@var	Record	$record	The record to retrieve the history of
 	**/
-	public function RecordHistory(Record $record) {
+	public function RecordHistory(GeoRecord $record) {
 		return $this->SendRequest('GET', '0.1/records/' . $record->Layer . '/' . $record->ID . '/history.json');
 	}
 	
