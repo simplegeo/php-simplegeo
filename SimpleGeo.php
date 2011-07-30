@@ -1,4 +1,4 @@
-<?
+<?php
 
 include 'OAuth.php';
 include 'CURL.php';
