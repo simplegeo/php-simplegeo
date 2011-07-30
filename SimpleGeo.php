@@ -1,8 +1,13 @@
-<?
+<?php
+namespace SimpleGeo;
 
-include 'OAuth.php';
-include 'CURL.php';
+include(dirname(__FILE__) . '/OAuth.php');
+include(dirname(__FILE__) . '/CURL.php');
 
+use SimpleGeo\OAuthConsumer;
+use SimpleGeo\OAuthRequest;
+use SimpleGeo\OAuthSignatureMethod_HMAC_SHA1;
+use SimpleGeo\CURL;
 
 /**
 	Contains a latitude and longitude. Simply represents a coordinate
@@ -79,7 +84,7 @@ class SimpleGeo extends CURL {
 	
 	const BASE_URL = 'http://api.simplegeo.com/';
 	
-	public function SimpleGeo($token = false, $secret = false) {
+	public function __construct($token = false, $secret = false) {
 		$this->token = $token;
 		$this->secret = $secret;
 		$this->consumer = new OAuthConsumer($this->token, $this->secret);
