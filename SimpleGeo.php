@@ -15,6 +15,11 @@ use SimpleGeo\CURL;
 class GeoPoint {
 	public $lat;
 	public $lng;
+	
+	public function __construct($lat, $lng) {
+		$this->lat = $lat;
+		$this->lng = $lng;
+	}
 }
 
 /**
@@ -142,11 +147,11 @@ class SimpleGeo extends CURL {
 	**/
 	public function ContextCoord($lat, $lng = false, $opts = false) {
 		if ($lat instanceof GeoPoint) {
+			if (is_array($lng)) $opts = $lng;
 			$lng = $lat->lng;
 			$lat = $lat->lat;
-			if (is_array($lng)) $opts = $lng;
 		}
-		return $this->SendRequest('GET', '1.0/context/' . $lat . ',' . $lng . '.json');
+		return $this->SendRequest('GET', '1.0/context/' . $lat . ',' . $lng . '.json', $opts);
 	}
 	
 	
