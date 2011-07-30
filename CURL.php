@@ -228,13 +228,20 @@ class CURL{
 	/**
 		Used to add several variables at from an associate array
 		
-		@param	array	pData	An associate array with values to add to the request
+		@param	array	pData	An associate array with values to add to the request (now also supports internal arrays for 
+        multiple category parameters)
 	**/
 	public function AddVars($pData)
 	{
 		if (is_array($pData)){
 			foreach ($pData as $key => $val) {
-				$this->AddVar($key, $val);
+				if (is_array($val))
+                {
+                    foreach($val as $cat)
+                        $this->AddVar($key, $cat);
+                }
+                else
+                    $this->AddVar($key, $val);
 			}
 		}
 	}
