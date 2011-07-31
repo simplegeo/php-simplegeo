@@ -50,6 +50,16 @@ There are a couple of different ways to retrieve nearby records - either by IP, 
 		'end' => time()
 	));
 
+## hCard adr queries
+
+It is possible to format the result of a Context query to expose properties you would expect from 
+an hCard. Primarily this includes countryName, region and locality. The normalization of individual
+countries' naming conventions for their regions is handled by this class.
+
+	$adr = \SimpleGeo\adr::createFromLatLng($geo, 49.239, -123.129);
+	echo $adr->locality;  // Vancouver
+	echo $adr->region;    // British Columbia
+	echo $adr->country;   // Canada
 
 ## Everything else
 

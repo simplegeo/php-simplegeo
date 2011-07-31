@@ -112,6 +112,13 @@ class ContextFeature {
 	An adr object can be created from a ContextResult. It will expose properties you would
 	expect to exist in an hCard. See http://microformats.org/wiki/adr for more information.
 	
+	Example Usage:
+	$adr = \SimpleGeo\adr::createFromLatLng($geo, 49.239, -123.129);
+	echo $adr->countryName;
+	echo $adr->region;
+	echo $adr->locality;
+	echo $adr->locality->license;
+	
 	@author Aaron Parecki <aaron@parecki.com>
 **/
 class adr {
