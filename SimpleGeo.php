@@ -23,10 +23,177 @@ class GeoPoint {
 }
 
 /**
+	A ContextResult object represents the results of the API call to the /1.0/context methods.
+	This object can be used to retrieve data in a more structured format than parsing through
+	the array on its own.
+	
+	@author Aaron Parecki <aaron@parecki.com>
+**/
+class ContextResult {
+	private $data;
+
+	public function __construct(array $data) {
+		$this->data = $data;
+	}
+	
+	/**
+	 * Returns a single feature of the requested category type, or FALSE if none was found.
+	 * If more than one feature was found matching the category, the best one is returned.
+	 */
+	public function getFeatureOfCategory($category) {
+		if(!$this->_featuresExists())
+			return FALSE;
+		
+		$candidates = $this->getFeaturesOfCategory($category);
+
+		if(count($candidates) == 0)
+			return FALSE;
+
+		if(count($candidates) == 1)
+			return $candidates[0];
+		
+		// Sometimes there are more than one result for a given category, in these
+		// cases, we want to return the one that has an "abbr" because it's usually better.
+		foreach($candidates as $c) {
+			if($c->data['abbr'])
+				return $c;
+		}
+		
+		// If none had 'abbr', then just return the first
+		return $candidates[0];
+	}
+	
+	/**
+	 * Returns an array of all features matching the requested category
+	 */
+	public function getFeaturesOfCategory($category) {
+		if(!$this->_featuresExists())
+			return array();
+		
+		$features = array();
+		foreach($this->data['features'] as $f) {
+			if(array_key_exists('classifiers', $f) && is_array($f['classifiers'])) {
+				foreach($f['classifiers'] as $c) {
+					if($c['category'] == $category) {
+						$features[] = new ContextFeature($f);
+					}
+				}
+			}
+		}
+		
+		return $features;
+	}
+	
+	private function _featuresExists() {
+		return array_key_exists('features', $this->data);
+	}
+}
+
+class ContextFeature {
+	public $data;
+
+	public function __construct(array $data) {
+		$this->data = $data;
+	}
+	
+	public function __toString() {
+		if(array_key_exists('name', $this->data));
+			return $this->data['name'];
+		
+		return '';
+	}
+	
+	public function __get($k) {
+		return array_key_exists($k, $this->data) ? $this->data[$k] : NULL;
+	}
+}
+
+/**
+	An adr object can be created from a ContextResult. It will expose properties you would
+	expect to exist in an hCard. See http://microformats.org/wiki/adr for more information.
+	
+	@author Aaron Parecki <aaron@parecki.com>
+**/
+class adr {
+	public $postOfficeBox = FALSE;
+	public $extendedAddress = FALSE;
+	public $streetAddress = FALSE;
+	public $locality = FALSE;
+	public $region = FALSE;
+	public $postalCode = FALSE;
+	public $countryName = FALSE;
+	
+	private $context;
+
+	/**
+	 * Create a new adr object given a lat/lng. Requires a SimpleGeo object to be passed in.
+	 */
+	public static function createFromLatLng(SimpleGeo $sg, $lat, $lng) {
+		return new adr(new ContextResult($sg->ContextCoord(new GeoPoint($lat, $lng), array(
+			'filter' => 'features',
+			'features__category' => 'National,Provincial,Subnational,Urban Area,Municipal,Postal Code'
+		))));
+	}
+	
+	public function __construct(ContextResult $c) {
+		// Parse the context result into the appropriate fields
+		$this->context = $c;
+		$this->countryName = 'test';
+		
+		// Many non-us addresses do not include a "region" in their hCard.
+		// In these cases, just a "locality" and "country-name" are used.
+		
+		if($municipal = $c->getFeatureOfCategory('Municipal')) {
+			$this->locality = $municipal;
+		} elseif($urbanArea = $c->getFeatureOfCategory('Urban Area')) {
+			$this->locality = $urbanArea;
+		} elseif($provincial = $c->getFeatureOfCategory('Provincial')) {
+			$this->locality = $provincial;
+		}
+		
+		if($subnational = $c->getFeatureOfCategory('Subnational')) {
+			$this->region = $subnational;
+		} elseif(($provincial = $c->getFeatureOfCategory('Provincial')) && ($provincial != $this->locality)) {
+			$this->region = $provincial;
+		}
+		
+		if($country = $c->getFeatureOfCategory('National')) {
+			$this->countryName = $country;
+		}
+		
+		if($postalCode = $c->getFeatureOfCategory('Postal Code')) {
+			$this->postalCode = $postalCode;
+		}
+	}
+	
+	/**
+	 * Alias property names for convenience
+	 * Can be called with names like:
+	 *   $adr->country_name
+	 *   $adr->{'country-name'};
+	 */
+	public function __get($k) {
+		// replace hyphens and underscores with spaces
+		$k = str_replace(array('-','_'), ' ', $k);
+		// capitalize every word
+		$k = ucwords($k);
+		// remove spaces
+		$k = str_replace(' ', '', $k);
+		// lowercase the first letter
+		$k = lcfirst($k);
+
+		if(property_exists($this, $k))
+			return $this->{$k};
+		else
+			return FALSE;
+	}
+}
+
+
+/**
 	A record object contains data regarding an arbitrary object and the
 	layer it resides in
 	http://simplegeo.com/docs/getting-started/storage#what-record
-	
 **/
 class Record {
 	
@@ -405,7 +572,8 @@ class SimpleGeo extends CURL {
 
 (The MIT License)
 
-Copyright (c) 2011 Rishi Ishairzay &lt;rishi [at] ishairzay [dot] com&gt;
+Copyright (c) 2011 Rishi Ishairzay <rishi [at] ishairzay [dot] com>
+      and (c) 2011 Aaron Parecki <aaron [at] parecki [dot] com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -428,5 +596,3 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
-
-?>
