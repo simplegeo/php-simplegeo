@@ -30,7 +30,8 @@ class GeoPoint {
 	@author Aaron Parecki <aaron@parecki.com>
 **/
 class ContextResult {
-	private $data;
+	public $data;
+	private $_intersection = FALSE;
 
 	public function __construct(array $data) {
 		$this->data = $data;
@@ -84,8 +85,109 @@ class ContextResult {
 		return $features;
 	}
 	
+	public function getIntersectionName() {
+		if(!$this->_intersectionsExists())
+			return FALSE;
+		
+		if($this->_intersection == FALSE)
+			$this->_intersection = new NearestIntersection($this);
+		
+		return $this->_intersection->name;
+	}
+	
 	private function _featuresExists() {
 		return array_key_exists('features', $this->data);
+	}
+	private function _intersectionsExists() {
+		return array_key_exists('intersections', $this->data);
+	}
+}
+
+/**
+	@author Aaron Parecki <aaron@parecki.com>
+**/
+class NearestIntersection {
+	private $_context;
+	private $_intersections;
+
+	public function __construct(ContextResult $context) {
+		$this->_context = $context;
+		$this->_intersections = $context->data['intersections'];
+	}
+	
+	public function __get($k) {
+		if($k == 'name')
+			return $this->getName();
+		
+		return NULL;
+	}
+	
+	/**
+	 * Returns a string with the intersection name represented by this context result.
+	 * Examples:
+	 *   SE 20th & Salmon St
+	 *   NW 6th Ave & Davis St
+	 *   6th Ave between Davis St and Everett St
+	 */
+	public function getName() {
+		if(!is_array($this->_intersections) || count($this->_intersections) == 0)
+			return FALSE;
+
+		$intersection = $this->_intersections[0]; // SimpleGeo returns intersections sorted by distance, closest first
+
+		if(!array_key_exists('properties', $intersection) || !is_array($intersection['properties']))
+			return FALSE;
+
+		// Remove intersections farther than 250m
+		if($intersection['distance'] > 250)
+			return FALSE;
+
+		if(!array_key_exists('highways', $intersection['properties']) || !is_array($intersection['properties']['highways']))
+			return FALSE;
+		
+		$highways = $intersection['properties']['highways'];
+
+		if(count($highways) == 1) {
+			// This case is probably never reached
+			return $this->_abbreviateDirection($highways[0]['name']);
+		}
+
+		if(count($highways) == 2) {
+			$street1 = $this->_abbreviateDirection($highways[0]['name']);
+			$street2 = $this->_abbreviateDirection($highways[1]['name']);
+			
+			// If the direction in both street names is the same, drop it from the second one
+			if(($dir=$this->_getDirection($street1)) == $this->_getDirection($street2) && $dir != FALSE) {
+				$street2 = preg_replace('/^'.$dir.' /', '', $street2);
+			}
+			
+			return $street1 . ' & ' . $street2;
+		}
+	}
+	
+	// Find the street direction in the street name. 
+	// Expected to be used on street names already run through _abbreviateDirection()
+	private function _getDirection($name) {
+		if(preg_match('/^(NE|NW|N|SE|SW|S|W|E) /', $name, $match)) {
+			return $match[1];
+		} else {
+			return FALSE;
+		}
+	}
+	
+	private function _abbreviateDirection($name) {
+		return preg_replace(array(
+			'/\bnortheast\b/i',
+			'/\bnorthwest\b/i',
+			'/\bnorth\b/i',
+			'/\bsoutheast\b/i',
+			'/\bsouthwest\b/i',
+			'/\bsouth\b/i',
+			'/\beast\b/i',
+			'/\bwest\b/i',
+		), array(
+			'NE', 'NW', 'N', 'SE', 'SW', 'S', 'E', 'W'
+		), $name);
 	}
 }
 
@@ -130,14 +232,14 @@ class adr {
 	public $postalCode = FALSE;
 	public $countryName = FALSE;
 	
-	private $context;
+	public $context;
 
 	/**
 	 * Create a new adr object given a lat/lng. Requires a SimpleGeo object to be passed in.
 	 */
-	public static function createFromLatLng(SimpleGeo $sg, $lat, $lng) {
+	public static function createFromLatLng(SimpleGeo $sg, $lat, $lng, $filter='features') {
 		return new adr(new ContextResult($sg->ContextCoord(new GeoPoint($lat, $lng), array(
-			'filter' => 'features',
+			'filter' => $filter,
 			'features__category' => 'National,Provincial,Subnational,Urban Area,Municipal,Postal Code'
 		))));
 	}
@@ -145,7 +247,6 @@ class adr {
 	public function __construct(ContextResult $c) {
 		// Parse the context result into the appropriate fields
 		$this->context = $c;
-		$this->countryName = 'test';
 		
 		// Many non-us addresses do not include a "region" in their hCard.
 		// In these cases, just a "locality" and "country-name" are used.
@@ -180,6 +281,13 @@ class adr {
 	 *   $adr->{'country-name'};
 	 */
 	public function __get($k) {
+		if($k == 'country')
+			return $this->countryName;
+		
+		if($k == 'intersection') {
+			return $this->context->getIntersectionName();
+		}
+	
 		// replace hyphens and underscores with spaces
 		$k = str_replace(array('-','_'), ' ', $k);
 		// capitalize every word
