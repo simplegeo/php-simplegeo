@@ -255,8 +255,6 @@ class adr {
 			$this->locality = $municipal;
 		} elseif($urbanArea = $c->getFeatureOfCategory('Urban Area')) {
 			$this->locality = $urbanArea;
-		} elseif($provincial = $c->getFeatureOfCategory('Provincial')) {
-			$this->locality = $provincial;
 		}
 		
 		if($subnational = $c->getFeatureOfCategory('Subnational')) {
@@ -370,6 +368,8 @@ class SimpleGeo extends CURL {
 	private $token, $secret;
 	
 	const BASE_URL = 'http://api.simplegeo.com/';
+
+	public $numRequests = 0;
 	
 	public function __construct($token = false, $secret = false) {
 		$this->token = $token;
@@ -674,6 +674,7 @@ class SimpleGeo extends CURL {
 	
 	
 	private function SendRequest($method = 'GET', $endpoint, $data = array()) {
+		$this->numRequests++;
 		$this->Revert(self::BASE_URL . $endpoint);
 		$this->SetMethod($method);
 		if (is_array($data)) $this->AddVars($data);
