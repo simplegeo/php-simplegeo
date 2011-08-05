@@ -261,8 +261,24 @@ class adr {
 			$this->region = $subnational;
 		} elseif(($provincial = $c->getFeatureOfCategory('Provincial')) && ($provincial != $this->locality)) {
 			$this->region = $provincial;
+		} elseif(($urbanArea = $c->getFeatureOfCategory('Urban Area')) && ($urbanArea != $this->locality)) {
+			$this->region = $urbanArea;
 		}
-		
+
+		// Sometimes (esp in the UK) the "provincial" area is smaller than the "urban area".
+		// This isn't right, because Bexley is inside of London. Fix it by making sure the smaller
+		// of the locality and region ends up in the locality.
+		if($this->locality && $this->region) {
+			$localityRadius = $this->_radiusFromBounds($this->locality->data['bounds']);
+			$regionRadius = $this->_radiusFromBounds($this->region->data['bounds']);
+			
+			if($localityRadius > $regionRadius) {
+				$tmp = $this->locality;
+				$this->locality = $this->region;
+				$this->region = $tmp;
+			}
+		}
+				
 		if($country = $c->getFeatureOfCategory('National')) {
 			$this->countryName = $country;
 		}
@@ -270,6 +286,13 @@ class adr {
 		if($postalCode = $c->getFeatureOfCategory('Postal Code')) {
 			$this->postalCode = $postalCode;
 		}
+	}
+	
+	private function _radiusFromBounds($bounds) {
+		$response['width'] = SimpleGeo::gc_distance($bounds[1],$bounds[0], $bounds[1],$bounds[2]);
+		$response['height'] = SimpleGeo::gc_distance($bounds[1],$bounds[0], $bounds[3],$bounds[0]);
+		$response['radius'] = max($response['width'], $response['height']) / 2;
+		return $response['radius'];
 	}
 	
 	/**
@@ -681,6 +704,10 @@ class SimpleGeo extends CURL {
 		else if (is_string($data)) $this->SetBody($data);
 		$this->IncludeAuthHeader();
 		return $this->Get();
+	}
+	
+	public static function gc_distance($lat1, $lng1, $lat2, $lng2) {
+		return ( 6378100 * acos( cos( deg2rad($lat1) ) * cos( deg2rad($lat2) ) * cos( deg2rad($lng2) - deg2rad($lng1) ) + sin( deg2rad($lat1) ) * sin( deg2rad($lat2) ) ) );
 	}
 }
 
