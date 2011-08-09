@@ -127,7 +127,6 @@ class SimpleGeo extends CURL {
 	}
 	
 	
-	
 	/**
 		Returns context of a coordinate
 		
@@ -142,6 +141,23 @@ class SimpleGeo extends CURL {
 			if (is_array($lng)) $opts = $lng;
 		}
 		return $this->SendRequest('GET', '1.0/context/' . $lat . ',' . $lng . '.json');
+	}
+	
+	
+	
+	/**
+		Returns a specific feature from a coordinate
+		
+		@var mixed $lat			Latitude or GeoPoint
+		@var float $lng			Longitude
+
+	**/
+	public function ContextCoordFeature($lat, $lng, $category) {
+		if ($lat instanceof GeoPoint) {
+			$lng = $lat->lng;
+			$lat = $lat->lat;
+		}
+		return $this->SendRequest('GET', '1.0/context/' . $lat . ',' . $lng . '.json?features__category=' . $category . '&filter=features');
 	}
 	
 	
